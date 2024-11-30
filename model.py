@@ -70,13 +70,13 @@ def get_entropy(directions):
 
 def divide_by_attribute(data_to_divide, directions, attribute_id):
     attribute_index = np.where(data_to_divide[0, :] == attribute_id)
-    mask = data_to_divide[:, attribute_index[0][0]] == True
+    mask = data_to_divide[1:, attribute_index[0][0]] == True
     anti_mask = np.logical_not(mask)
     attribute_mask = data_to_divide[0, :] != attribute_id
     data_to_divide = data_to_divide[:, attribute_mask]
-    sub_collection_true = data_to_divide[1:, :][mask]
+    sub_collection_true = np.concatenate([data_to_divide[0:1, :], data_to_divide[1:, :][mask]], axis=0)
     directions_true = directions[mask]
-    sub_collection_false = data_to_divide[1:, :][anti_mask]
+    sub_collection_false = np.concatenate([data_to_divide[0:1, :], data_to_divide[1:, :][anti_mask]])
     directions_false = directions[anti_mask]
     return [(sub_collection_true, directions_true), (sub_collection_false, directions_false)]
 
@@ -103,5 +103,5 @@ if __name__ == "__main__":
     training_data = create_training_data(states, 30, (300, 300))
     test_divide = np.array([[0, 1,3,4], [0, 1, 0, 0], [1, 0, 1, 0], [0, 0, 0, 0], [1, 0, 0, 1]])
     test_dirs = np.array([Direction.DOWN, Direction.LEFT, Direction.UP, Direction.LEFT])
-    
-    ID3(test_divide, test_dirs)
+    divide_by_attribute(test_divide, test_dirs, 3)
+    # ID3(test_divide, test_dirs)
