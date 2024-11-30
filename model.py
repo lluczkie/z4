@@ -88,12 +88,12 @@ def inf_gain(data_to_divide, directions, attribute_id):
 
 def ID3(training_data, directions):
     if directions.size == 0:
-        return np.random.randint(0, 4)
+        return str(np.random.randint(0, 4))
     if np.all(directions == directions[0]):
-        return directions[0]
+        return str(directions[0])
     if training_data.size == 0:
         counts = np.bincount(directions)
-        return np.argmax(counts)
+        return str(np.argmax(counts))
     
     attributes = training_data[0, :]
     gains = [inf_gain(training_data, directions, attr) for attr in attributes]
@@ -105,8 +105,6 @@ def ID3(training_data, directions):
 if __name__ == "__main__":
     states, directions = get_states_and_directions_from_pickle("data/2024-11-30_17:25:59.pickle")
     training_data = create_training_data(states, 30, (300, 300))
-    # test_divide = np.array([[0, 1,3,4], [0, 1, 0, 0], [1, 0, 1, 0], [0, 0, 0, 0], [1, 0, 0, 1]])
-    # test_dirs = np.array([Direction.DOWN, Direction.LEFT, Direction.UP, Direction.LEFT])
     tree = ID3(training_data, directions)
     out_file = open("tree.json", "w")
     json.dump(tree, out_file, indent = 6)
