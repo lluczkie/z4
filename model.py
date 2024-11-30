@@ -48,15 +48,14 @@ def get_states_and_directions_from_pickle(filename):
     for data_entry in data_file["data"]:
         game_states.append(data_entry[0])
         directions.append(data_entry[1])
-    return game_states, directions
+    return game_states, np.array(directions)
 
 def create_training_data(states, block_size, bounds):
-    training_data = np.array([[0, 1, 2, 3, 4, 5, 6, 7]])
+    training_data = np.array([[0, 1, 2, 3, 4, 5, 6, 7]]) 
     for state in states:
         attributes = game_state_to_data_sample(state, block_size, bounds)
         training_data = np.concatenate((training_data, attributes), axis=0)
     return training_data
-
 
 def get_entropy(directions):
     entropy = 0
@@ -69,6 +68,23 @@ def get_entropy(directions):
             entropy -= frequencies[dir]*log(frequencies[dir])
     return entropy
 
+def divide_by_attribute(data_to_divide, directions, attribute_id):
+    attribute_index = np.where(data_to_divide[0, :] == attribute_id)
+    mask = data_to_divide[:, attribute_index[0][0]] == True
+    anti_mask = np.logical_not(mask)
+    attribute_mask = data_to_divide[0, :] != attribute_id
+    data_to_divide = data_to_divide[:, attribute_mask]
+    sub_collection_true = data_to_divide[1:, :][mask]
+    directions_true = directions[mask]
+    sub_collection_false = data_to_divide[1:, :][anti_mask]
+    directions_false = directions[anti_mask]
+    return [(sub_collection_true, directions_true), (sub_collection_false, directions_false)]
+
+def inf_gain(data_to_divide, directions, attribute_id):
+    [(_, dirs1), (_, dirs2)] = divide_by_attribute(data_to_divide, directions, attribute_id)
+    inf = (dirs1.size*get_entropy(dirs1) + dirs2.size*get_entropy(dirs2))/directions.size
+    return get_entropy(directions)-inf
+
 def ID3(training_data, directions):
     if np.all(directions == directions[0]):
         return directions[0]
@@ -76,12 +92,16 @@ def ID3(training_data, directions):
         counts = np.bincount(directions)
         return np.argmax(counts)
     
-    # U_attr_true=[]
-    # U_attr_false=[]
-    # return {True: ID3(U_attr_true, dir_attr_true), False: ID3(U_attr_false, dir_attr_false)}
+    attributes = training_data[0, :]
+    gains = [inf_gain(training_data, directions, attr) for attr in attributes]
+    divisor = attributes[np.argmax(gains)]
+    [(attr_true, dir_true), (attr_false, dir_false)] = divide_by_attribute(training_data, directions, divisor)
+    return {True: ID3(attr_true, dir_true), False: ID3(attr_false, dir_false)}
 
 if __name__ == "__main__":
     states, directions = get_states_and_directions_from_pickle("data/2024-11-30_17:25:59.pickle")
     training_data = create_training_data(states, 30, (300, 300))
-    print(get_entropy([1, 1, 2, 2, 2,1, 0, 0,2, 0]))
-    # ID3(np.array([[]]), directions)
+    test_divide = np.array([[0, 1,3,4], [0, 1, 0, 0], [1, 0, 1, 0], [0, 0, 0, 0], [1, 0, 0, 1]])
+    test_dirs = np.array([Direction.DOWN, Direction.LEFT, Direction.UP, Direction.LEFT])
+    
+    ID3(test_divide, test_dirs)
