@@ -12,14 +12,14 @@ def game_state_to_data_sample(game_state: dict, block_size: int, bounds: tuple):
     food = game_state["food"]
 
     is_wall_left = True if head[0] == 0 else False
-    is_wall_right = True if head[0] == (bounds[0]-block_size)/block_size else False
+    is_wall_right = True if head[0] == (bounds[0]-block_size) else False
     is_wall_up = True if head[1] == 0 else False
-    is_wall_down = True if head[1] == (bounds[1]-block_size)/block_size else False
+    is_wall_down = True if head[1] == (bounds[1]-block_size) else False
     
-    snake_module_left = (head[0]-block_size, head[1])
-    snake_module_right = (head[0]+block_size, head[1])
-    snake_module_up = (head[0], head[1]-block_size)
-    snake_module_down = (head[0], head[1]+block_size)
+    snake_module_left = (head[0] - block_size, head[1])
+    snake_module_right = (head[0] + block_size, head[1])
+    snake_module_up = (head[0], head[1] - block_size)
+    snake_module_down = (head[0], head[1] + block_size)
     
     is_snake_left = True if snake_module_left in snake_body else False
     is_snake_right = True if snake_module_right in snake_body else False
@@ -36,7 +36,7 @@ def game_state_to_data_sample(game_state: dict, block_size: int, bounds: tuple):
     is_obstacle_up = True if is_wall_up or is_snake_up else False
     is_obstacle_down = True if is_wall_down or is_snake_down else False
 
-    data_sample = np.array([[is_wall_left, is_wall_right, is_wall_up, is_wall_down, is_food_left, is_food_right, is_food_up, is_food_down]])
+    data_sample = np.array([[is_obstacle_left, is_obstacle_right, is_obstacle_up, is_obstacle_down, is_food_left, is_food_right, is_food_up, is_food_down]])
 
     return data_sample
 
