@@ -6,6 +6,20 @@ import json
 """Implement your model, training code and other utilities here. Please note, you can generate multiple 
 pickled data files and merge them into a single data list."""
 
+def combine_pickles():
+    normal=[]
+    corner=[]
+    with open('data/2024-11-30_17:25:59.pickle', 'rb') as f:
+        normal = pickle.load(f)
+    with open('data/2024-12-01_00:08:30.pickle', 'rb') as f:
+        corner = pickle.load(f)
+
+    with open("data/merged.pickle", "wb") as file:
+        pickle.dump(normal, file)
+    with open("data/merged.pickle", "ab") as file:
+        pickle.dump(corner, file)
+    
+
 def game_state_to_data_sample(game_state: dict, block_size: int, bounds: tuple):
     snake_body = game_state["snake_body"]
     head = snake_body[-1]
@@ -102,7 +116,8 @@ def ID3(training_data, directions):
     return {str(divisor): {True: ID3(attr_true, dir_true), False: ID3(attr_false, dir_false)}}
 
 if __name__ == "__main__":
-    states, directions = get_states_and_directions_from_pickle("data/2024-11-30_17:25:59.pickle")
+    combine_pickles()
+    states, directions = get_states_and_directions_from_pickle("data/merged.pickle")
     training_data = create_training_data(states, 30, (300, 300))
     tree = ID3(training_data, directions)
     out_file = open("tree.json", "w")
