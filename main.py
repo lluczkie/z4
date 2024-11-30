@@ -5,9 +5,9 @@ import pygame
 import time
 
 from food import Food
-from model import game_state_to_data_sample
+from model import game_state_to_data_sample, ID3
 from snake import Snake, Direction
-
+import json
 
 def main():
     pygame.init()
@@ -19,12 +19,12 @@ def main():
     snake = Snake(block_size, bounds)
     food = Food(block_size, bounds, lifetime=100)
 
-    agent = HumanAgent(block_size, bounds)  # Once your agent is good to go, change this line
+    agent = BehavioralCloningAgent(block_size, bounds)  # Once your agent is good to go, change this line
     scores = []
     run = True
     pygame.time.delay(1000)
     while run:
-        pygame.time.delay(80)  # Adjust game speed, decrease to test your agent and model quickly
+        pygame.time.delay(100)  # Adjust game speed, decrease to test your agent and model quickly
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -91,13 +91,22 @@ class HumanAgent:
 
 
 class BehavioralCloningAgent:
-    def __init__(self):
-        raise NotImplementedError()
+    def __init__(self, block_size, bounds):
+        self.block_size = block_size
+        self.bounds = bounds
+        f = open('tree.json', 'r')
+        self.id3 = json.load(f)
+        f.close()
 
     def act(self, game_state) -> Direction:
         """ Calculate data sample attributes from game_state and run the trained model to predict snake's action/direction"""
-        data_sample = game_state_to_data_sample(game_state)
-        raise NotImplementedError()
+        data_sample = game_state_to_data_sample(game_state, self.block_size, self.bounds)
+        level = list(self.id3.keys())[0]
+        next=self.id3[level][str(data_sample[0, int(level)]).lower()]
+        while type(next) == dict:
+            level = list(next.keys())[0]
+            next=next[level][str(data_sample[0, int(level)]).lower()]
+        return int(next)
 
     def dump_data(self):
         pass

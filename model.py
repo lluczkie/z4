@@ -36,7 +36,7 @@ def game_state_to_data_sample(game_state: dict, block_size: int, bounds: tuple):
     is_obstacle_up = True if is_wall_up or is_snake_up else False
     is_obstacle_down = True if is_wall_down or is_snake_down else False
 
-    data_sample = np.array([[is_obstacle_left, is_obstacle_right, is_obstacle_up, is_obstacle_down, is_food_left, is_food_right, is_food_up, is_food_down]])
+    data_sample = np.array([[is_wall_left, is_wall_right, is_wall_up, is_wall_down, is_food_left, is_food_right, is_food_up, is_food_down]])
 
     return data_sample
 
@@ -98,14 +98,13 @@ def ID3(training_data, directions):
     attributes = training_data[0, :]
     gains = [inf_gain(training_data, directions, attr) for attr in attributes]
     divisor = attributes[np.argmax(gains)]
-    print(f'dividing by attribute with id: {divisor}')
     [(attr_true, dir_true), (attr_false, dir_false)] = divide_by_attribute(training_data, directions, divisor)
-    return {True: ID3(attr_true, dir_true), False: ID3(attr_false, dir_false)}
+    return {str(divisor): {True: ID3(attr_true, dir_true), False: ID3(attr_false, dir_false)}}
 
 if __name__ == "__main__":
     states, directions = get_states_and_directions_from_pickle("data/2024-11-30_17:25:59.pickle")
     training_data = create_training_data(states, 30, (300, 300))
     tree = ID3(training_data, directions)
     out_file = open("tree.json", "w")
-    json.dump(tree, out_file, indent = 6)
+    json.dump(tree, out_file, indent = 2)
     out_file.close()
