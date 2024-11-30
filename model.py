@@ -18,7 +18,6 @@ def combine_pickles():
         pickle.dump(normal, file)
     with open("data/merged.pickle", "ab") as file:
         pickle.dump(corner, file)
-    
 
 def game_state_to_data_sample(game_state: dict, block_size: int, bounds: tuple):
     snake_body = game_state["snake_body"]
@@ -68,6 +67,7 @@ def get_states_and_directions_from_pickle(filename):
 def create_training_data(states, block_size, bounds):
     training_data = np.array([[0, 1, 2, 3, 4, 5, 6, 7]]) 
     for state in states:
+        # TODO jesli sciana dir snake w sciane i umiera odrzucić próbkę
         attributes = game_state_to_data_sample(state, block_size, bounds)
         training_data = np.concatenate((training_data, attributes), axis=0)
     return training_data

@@ -18,8 +18,8 @@ def main():
     block_size = 30
     snake = Snake(block_size, bounds)
     food = Food(block_size, bounds, lifetime=100)
-
-    agent = BehavioralCloningAgent(block_size, bounds)  # Once your agent is good to go, change this line
+    # TODO więcej różnych gier
+    agent = HumanAgent(block_size, bounds)  # Once your agent is good to go, change this line
     scores = []
     run = True
     pygame.time.delay(1000)
