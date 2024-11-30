@@ -2,6 +2,7 @@ import pickle
 import numpy as np
 from snake import Direction
 from math import log
+import json
 """Implement your model, training code and other utilities here. Please note, you can generate multiple 
 pickled data files and merge them into a single data list."""
 
@@ -86,6 +87,8 @@ def inf_gain(data_to_divide, directions, attribute_id):
     return get_entropy(directions)-inf
 
 def ID3(training_data, directions):
+    if directions.size == 0:
+        return np.random.randint(0, 4)
     if np.all(directions == directions[0]):
         return directions[0]
     if training_data.size == 0:
@@ -95,13 +98,16 @@ def ID3(training_data, directions):
     attributes = training_data[0, :]
     gains = [inf_gain(training_data, directions, attr) for attr in attributes]
     divisor = attributes[np.argmax(gains)]
+    print(f'dividing by attribute with id: {divisor}')
     [(attr_true, dir_true), (attr_false, dir_false)] = divide_by_attribute(training_data, directions, divisor)
     return {True: ID3(attr_true, dir_true), False: ID3(attr_false, dir_false)}
 
 if __name__ == "__main__":
     states, directions = get_states_and_directions_from_pickle("data/2024-11-30_17:25:59.pickle")
     training_data = create_training_data(states, 30, (300, 300))
-    test_divide = np.array([[0, 1,3,4], [0, 1, 0, 0], [1, 0, 1, 0], [0, 0, 0, 0], [1, 0, 0, 1]])
-    test_dirs = np.array([Direction.DOWN, Direction.LEFT, Direction.UP, Direction.LEFT])
-    divide_by_attribute(test_divide, test_dirs, 3)
-    # ID3(test_divide, test_dirs)
+    # test_divide = np.array([[0, 1,3,4], [0, 1, 0, 0], [1, 0, 1, 0], [0, 0, 0, 0], [1, 0, 0, 1]])
+    # test_dirs = np.array([Direction.DOWN, Direction.LEFT, Direction.UP, Direction.LEFT])
+    tree = ID3(training_data, directions)
+    out_file = open("tree.json", "w")
+    json.dump(tree, out_file, indent = 6)
+    out_file.close()
