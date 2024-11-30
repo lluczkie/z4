@@ -1,6 +1,7 @@
 import pickle
 import numpy as np
 from snake import Direction
+from math import log
 """Implement your model, training code and other utilities here. Please note, you can generate multiple 
 pickled data files and merge them into a single data list."""
 
@@ -50,21 +51,37 @@ def get_states_and_directions_from_pickle(filename):
     return game_states, directions
 
 def create_training_data(states, block_size, bounds):
-    training_data = game_state_to_data_sample(states[0], block_size, bounds)
+    training_data = np.array([[0, 1, 2, 3, 4, 5, 6, 7]])
     for state in states:
         attributes = game_state_to_data_sample(state, block_size, bounds)
         training_data = np.concatenate((training_data, attributes), axis=0)
-    return training_data[1:, :]
+    return training_data
+
+
+def get_entropy(directions):
+    entropy = 0
+    size = len(directions)
+    if size == 0:
+        return entropy
+    frequencies = np.bincount(directions, minlength=4)/size
+    for dir in Direction:
+        if frequencies[dir] > 0:
+            entropy -= frequencies[dir]*log(frequencies[dir])
+    return entropy
 
 def ID3(training_data, directions):
     if np.all(directions == directions[0]):
         return directions[0]
     if training_data.size == 0:
-        values, counts = np.unique(directions, return_counts=True)
-        return values[np.argmax(counts)]
-
+        counts = np.bincount(directions)
+        return np.argmax(counts)
+    
+    # U_attr_true=[]
+    # U_attr_false=[]
+    # return {True: ID3(U_attr_true, dir_attr_true), False: ID3(U_attr_false, dir_attr_false)}
 
 if __name__ == "__main__":
     states, directions = get_states_and_directions_from_pickle("data/2024-11-30_17:25:59.pickle")
     training_data = create_training_data(states, 30, (300, 300))
-    ID3(np.array([[]]), directions)
+    print(get_entropy([1, 1, 2, 2, 2,1, 0, 0,2, 0]))
+    # ID3(np.array([[]]), directions)
