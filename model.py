@@ -1,17 +1,70 @@
 import pickle
-
+import numpy as np
+from snake import Direction
 """Implement your model, training code and other utilities here. Please note, you can generate multiple 
 pickled data files and merge them into a single data list."""
 
+def game_state_to_data_sample(game_state: dict, block_size: int, bounds: tuple):
+    snake_body = game_state["snake_body"]
+    head = snake_body[-1]
+    food = game_state["food"]
 
-def game_state_to_data_sample(game_state: dict):
-    raise NotImplementedError()
+    is_wall_left = True if head[0] == 0 else False
+    is_wall_right = True if head[0] == (bounds[0]-block_size)/block_size else False
+    is_wall_up = True if head[1] == 0 else False
+    is_wall_down = True if head[1] == (bounds[1]-block_size)/block_size else False
+    
+    snake_module_left = (head[0]-block_size, head[1])
+    snake_module_right = (head[0]+block_size, head[1])
+    snake_module_up = (head[0], head[1]-block_size)
+    snake_module_down = (head[0], head[1]+block_size)
+    
+    is_snake_left = True if snake_module_left in snake_body else False
+    is_snake_right = True if snake_module_right in snake_body else False
+    is_snake_up = True if snake_module_up in snake_body else False
+    is_snake_down = True if snake_module_down in snake_body else False
+    
+    is_food_left = True if head[1] == food[1] and head[0] == food[0] + block_size else False
+    is_food_right = True if head[1] == food[1] and head[0] + block_size == food[0] else False
+    is_food_up = True if head[0] == food[0] and head[1] == food[1] + block_size else False
+    is_food_down = True if head[0] == food[0] and head[1] + block_size == food[1] else False
+
+    is_obstacle_left = True if is_wall_left or is_snake_left else False
+    is_obstacle_right = True if is_wall_right or is_snake_right else False
+    is_obstacle_up = True if is_wall_up or is_snake_up else False
+    is_obstacle_down = True if is_wall_down or is_snake_down else False
+
+    data_sample = np.array([[is_obstacle_left, is_obstacle_right, is_obstacle_up, is_obstacle_down, is_food_left, is_food_right, is_food_up, is_food_down]])
+
+    return data_sample
+
+def get_states_and_directions_from_pickle(filename):
+    game_states = []
+    directions = []
+    data_file = []
+    with open(filename, 'rb') as f:
+        data_file = pickle.load(f)
+    for data_entry in data_file["data"]:
+        game_states.append(data_entry[0])
+        directions.append(data_entry[1])
+    return game_states, directions
+
+def create_training_data(states, block_size, bounds):
+    training_data = game_state_to_data_sample(states[0], block_size, bounds)
+    for state in states:
+        attributes = game_state_to_data_sample(state, block_size, bounds)
+        training_data = np.concatenate((training_data, attributes), axis=0)
+    return training_data[1:, :]
+
+def ID3(training_data, directions):
+    if np.all(directions == directions[0]):
+        return directions[0]
+    if training_data.size == 0:
+        values, counts = np.unique(directions, return_counts=True)
+        return values[np.argmax(counts)]
 
 
 if __name__ == "__main__":
-    """ Example of how to read a pickled file, feel free to remove this"""
-    with open(f"data/2024-10-14_12:52:37.pickle", 'rb') as f:
-        data_file = pickle.load(f)
-    print(data_file["block_size"])
-    print(data_file["bounds"])
-    print(data_file["data"])
+    states, directions = get_states_and_directions_from_pickle("data/2024-11-30_17:25:59.pickle")
+    training_data = create_training_data(states, 30, (300, 300))
+    ID3(np.array([[]]), directions)
