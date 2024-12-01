@@ -9,7 +9,7 @@ pickled data files and merge them into a single data list."""
 def combine_pickles():
     run=[]
     open('data/merged.pickle', 'w').close()
-    for i in range(6):
+    for i in range(7):
         with open(f'data/run{i}.pickle', 'rb') as run_file:
             run = pickle.load(run_file)
         with open("data/merged.pickle", "ab") as merged_file:
@@ -36,11 +36,6 @@ def game_state_to_data_sample(game_state: dict, block_size: int, bounds: tuple):
     is_snake_up = True if snake_module_up in snake_body else False
     is_snake_down = True if snake_module_down in snake_body else False
     
-    is_food_left = True if head[1] == food[1] and head[0] == food[0] + block_size else False
-    is_food_right = True if head[1] == food[1] and head[0] + block_size == food[0] else False
-    is_food_up = True if head[0] == food[0] and head[1] == food[1] + block_size else False
-    is_food_down = True if head[0] == food[0] and head[1] + block_size == food[1] else False
-
     is_obstacle_left = True if is_wall_left or is_snake_left else False
     is_obstacle_right = True if is_wall_right or is_snake_right else False
     is_obstacle_up = True if is_wall_up or is_snake_up else False
@@ -55,6 +50,11 @@ def game_state_to_data_sample(game_state: dict, block_size: int, bounds: tuple):
         is_food_in_snake_direction = True
     if head[0] == food[0] and head[1] < food[1] and snake_direction == Direction.DOWN:
         is_food_in_snake_direction = True
+
+    is_food_left = True if head[1] == food[1] and head[0] < food[0] else False
+    is_food_right = True if head[1] == food[1] and head[0] > food[0] else False
+    is_food_up = True if head[0] == food[0] and head[1] > food[1] else False
+    is_food_down = True if head[0] == food[0] and head[1] < food[1] else False
 
     data_sample = np.array([[is_wall_left, is_wall_right, is_wall_up, is_wall_down, is_food_left, is_food_right, is_food_up, is_food_down, is_food_in_snake_direction]])
 
