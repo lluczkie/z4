@@ -9,7 +9,7 @@ pickled data files and merge them into a single data list."""
 def combine_pickles():
     run=[]
     open('data/merged.pickle', 'w').close()
-    for i in range(5, 9):
+    for i in range(5, 10):
         with open(f'data/run{i}.pickle', 'rb') as run_file:
             run = pickle.load(run_file)
         with open("data/merged.pickle", "ab") as merged_file:
@@ -71,8 +71,8 @@ def get_states_and_directions_from_pickle(filename):
         directions.append(data_entry[1])
     return game_states, directions
 
-def create_training_data(states, directions, block_size, bounds):
-    training_data = np.array([[0, 1, 2, 3, 4, 5, 6, 7, 8]]) 
+def process_data(states, directions, block_size, bounds):
+    processed_data = np.array([[0, 1, 2, 3, 4, 5, 6, 7, 8]]) 
     new_dirs = []
     for state, dir in zip(states, directions):
         attributes = game_state_to_data_sample(state, block_size, bounds)
@@ -98,9 +98,9 @@ def create_training_data(states, directions, block_size, bounds):
             dir = Direction.DOWN
         
         new_dirs.append(dir)
-        training_data = np.concatenate((training_data, attributes), axis=0)
+        processed_data = np.concatenate((processed_data, attributes), axis=0)
         
-    return training_data, np.array(new_dirs)
+    return processed_data, np.array(new_dirs)
 
 def get_entropy(directions):
     entropy = 0
@@ -149,7 +149,7 @@ if __name__ == "__main__":
     combine_pickles()
     run=0
     states, directions = get_states_and_directions_from_pickle(f"data/merged.pickle")
-    training_data, training_directions = create_training_data(states, directions, 30, (300, 300))
+    training_data, training_directions = process_data(states, directions, 30, (300, 300))
     tree = ID3(training_data, training_directions)
     out_file = open(f"tree.json", "w")
     json.dump(tree, out_file, indent = 2)
