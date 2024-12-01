@@ -7,17 +7,12 @@ import json
 pickled data files and merge them into a single data list."""
 
 def combine_pickles():
-    normal=[]
-    corner=[]
-    with open('data/2024-11-30_17:25:59.pickle', 'rb') as f:
-        normal = pickle.load(f)
-    with open('data/2024-12-01_00:08:30.pickle', 'rb') as f:
-        corner = pickle.load(f)
+    walls = []
+    with open('data/walls.pickle', 'rb') as f:
+        walls = pickle.load(f)
 
-    with open("data/merged.pickle", "wb") as file:
-        pickle.dump(normal, file)
     with open("data/merged.pickle", "ab") as file:
-        pickle.dump(corner, file)
+        pickle.dump(walls, file)
 
 def game_state_to_data_sample(game_state: dict, block_size: int, bounds: tuple):
     snake_body = game_state["snake_body"]
@@ -62,15 +57,24 @@ def get_states_and_directions_from_pickle(filename):
     for data_entry in data_file["data"]:
         game_states.append(data_entry[0])
         directions.append(data_entry[1])
-    return game_states, np.array(directions)
+    return game_states, directions
 
-def create_training_data(states, block_size, bounds):
+def create_training_data(states, directions, block_size, bounds):
     training_data = np.array([[0, 1, 2, 3, 4, 5, 6, 7]]) 
-    for state in states:
-        # TODO jesli sciana dir snake w sciane i umiera odrzucić próbkę
+    new_dirs = []
+    for state, dir in zip(states, directions):
         attributes = game_state_to_data_sample(state, block_size, bounds)
+        if attributes[0][0] and dir == Direction.LEFT:
+            continue
+        if attributes[0][1] and dir == Direction.RIGHT:
+            continue
+        if attributes[0][2] and dir == Direction.UP:
+            continue
+        if attributes[0][3] and dir == Direction.DOWN:
+            continue
+        new_dirs.append(dir)
         training_data = np.concatenate((training_data, attributes), axis=0)
-    return training_data
+    return training_data, np.array(new_dirs)
 
 def get_entropy(directions):
     entropy = 0
@@ -118,7 +122,7 @@ def ID3(training_data, directions):
 if __name__ == "__main__":
     combine_pickles()
     states, directions = get_states_and_directions_from_pickle("data/merged.pickle")
-    training_data = create_training_data(states, 30, (300, 300))
+    training_data, directions = create_training_data(states, directions, 30, (300, 300))
     tree = ID3(training_data, directions)
     out_file = open("tree.json", "w")
     json.dump(tree, out_file, indent = 2)
