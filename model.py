@@ -86,16 +86,6 @@ def create_training_data(states, directions, block_size, bounds):
             continue
         if attributes[0][3] and dir == Direction.DOWN:
             continue
-
-        # always take food
-        if attributes[0][4]:
-            dir = Direction.LEFT
-        if attributes[0][5]:
-            dir = Direction.RIGHT
-        if attributes[0][6]:
-            dir = Direction.UP
-        if attributes[0][7]:
-            dir = Direction.DOWN
         
         new_dirs.append(dir)
         training_data = np.concatenate((training_data, attributes), axis=0)
