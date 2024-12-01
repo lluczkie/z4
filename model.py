@@ -9,7 +9,7 @@ pickled data files and merge them into a single data list."""
 def combine_pickles():
     run=[]
     open('data/merged.pickle', 'w').close()
-    for i in range(7):
+    for i in range(4, 9):
         with open(f'data/run{i}.pickle', 'rb') as run_file:
             run = pickle.load(run_file)
         with open("data/merged.pickle", "ab") as merged_file:
@@ -56,7 +56,7 @@ def game_state_to_data_sample(game_state: dict, block_size: int, bounds: tuple):
     is_food_up = True if head[0] == food[0] and head[1] > food[1] else False
     is_food_down = True if head[0] == food[0] and head[1] < food[1] else False
 
-    data_sample = np.array([[is_wall_left, is_wall_right, is_wall_up, is_wall_down, is_food_left, is_food_right, is_food_up, is_food_down, is_food_in_snake_direction]])
+    data_sample = np.array([[is_obstacle_left, is_obstacle_right, is_obstacle_up, is_obstacle_down, is_food_left, is_food_right, is_food_up, is_food_down, is_food_in_snake_direction]])
 
     return data_sample
 
