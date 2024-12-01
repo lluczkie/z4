@@ -146,10 +146,16 @@ def ID3(training_data, directions):
     [(attr_true, dir_true), (attr_false, dir_false)] = divide_by_attribute(training_data, directions, divisor)
     return {str(divisor): {True: ID3(attr_true, dir_true), False: ID3(attr_false, dir_false)}}
 
-def split_data(data, dirs):
-    permutation = np.random.permutation(data.shape[0]-1)
+def split_data(data, dirs, percent):
+    # mix samples from different runs
+    permutation = np.random.permutation(data.shape[0] - 1)
     np.take(data[1:, :], permutation, axis=0, out=data[1:, :])
     np.take(dirs, permutation, out=dirs)
+    # take 0-100 percent of data
+    perc = (data.shape[0]-1)*percent // 100
+    data = data[:perc+1]
+    dirs = dirs[:perc]
+    # split
     split_ix = data.shape[0] // 5
     train_data = data[:4*split_ix+1, :]
     test_data = data[4*split_ix+1:, :]
@@ -170,7 +176,7 @@ if __name__ == "__main__":
     combine_pickles()
     states, directions = get_states_and_directions_from_pickle(f"data/merged.pickle")
     processed_data, processed_directions = process_data(states, directions, 30, (300, 300))
-    (train_data, train_dirs), (test_data, test_dirs) = split_data(processed_data, processed_directions)
+    (train_data, train_dirs), (test_data, test_dirs) = split_data(processed_data, processed_directions, 100)
     tree = ID3(train_data, train_dirs)
     out_file = open(f"tree.json", "w")
     json.dump(tree, out_file, indent = 2)
