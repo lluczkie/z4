@@ -7,19 +7,12 @@ import json
 pickled data files and merge them into a single data list."""
 
 def combine_pickles():
-    walls = []
-    with open('data/walls.pickle', 'rb') as f:
-        walls = pickle.load(f)
-
-    normal = []
-    with open('data/normal.pickle', 'rb') as f:
-        normal = pickle.load(f)
-
-    with open("data/merged.pickle", "wb") as file:
-        pickle.dump(normal, file)
-
-    with open("data/merged.pickle", "ab") as file:
-        pickle.dump(walls, file)
+    run=[]
+    for i in range(4):
+        with open(f'data/run{i}.pickle', 'rb') as run_file:
+            run = pickle.load(run_file)
+        with open("data/merged.pickle", "ab") as merged_file:
+            pickle.dump(run, merged_file)
 
 def game_state_to_data_sample(game_state: dict, block_size: int, bounds: tuple):
     snake_body = game_state["snake_body"]
@@ -72,25 +65,25 @@ def create_training_data(states, directions, block_size, bounds):
     for state, dir in zip(states, directions):
         attributes = game_state_to_data_sample(state, block_size, bounds)
 
-        # never collide
-        if attributes[0][0] and dir == Direction.LEFT:
-            continue
-        if attributes[0][1] and dir == Direction.RIGHT:
-            continue
-        if attributes[0][2] and dir == Direction.UP:
-            continue
-        if attributes[0][3] and dir == Direction.DOWN:
-            continue
+        # # never collide
+        # if attributes[0][0] and dir == Direction.LEFT:
+        #     continue
+        # if attributes[0][1] and dir == Direction.RIGHT:
+        #     continue
+        # if attributes[0][2] and dir == Direction.UP:
+        #     continue
+        # if attributes[0][3] and dir == Direction.DOWN:
+        #     continue
 
-        # always take food
-        if attributes[0][4]:
-            dir = Direction.LEFT
-        if attributes[0][5]:
-            dir = Direction.RIGHT
-        if attributes[0][6]:
-            dir = Direction.UP
-        if attributes[0][7]:
-            dir = Direction.DOWN
+        # # always take food
+        # if attributes[0][4]:
+        #     dir = Direction.LEFT
+        # if attributes[0][5]:
+        #     dir = Direction.RIGHT
+        # if attributes[0][6]:
+        #     dir = Direction.UP
+        # if attributes[0][7]:
+        #     dir = Direction.DOWN
         
         new_dirs.append(dir)
         training_data = np.concatenate((training_data, attributes), axis=0)
@@ -142,9 +135,10 @@ def ID3(training_data, directions):
 
 if __name__ == "__main__":
     # combine_pickles()
-    states, directions = get_states_and_directions_from_pickle("data/run1.pickle")
-    training_data, directions = create_training_data(states, directions, 30, (300, 300))
-    tree = ID3(training_data, directions)
-    out_file = open("tree.json", "w")
+    run=0
+    states, directions = get_states_and_directions_from_pickle(f"data/merged.pickle")
+    training_data, training_directions = create_training_data(states, directions, 30, (300, 300))
+    tree = ID3(training_data, training_directions)
+    out_file = open(f"tree.json", "w")
     json.dump(tree, out_file, indent = 2)
     out_file.close()
