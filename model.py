@@ -77,7 +77,7 @@ def create_training_data(states, directions, block_size, bounds):
     for state, dir in zip(states, directions):
         attributes = game_state_to_data_sample(state, block_size, bounds)
 
-        # # never collide
+        # never collide
         if attributes[0][0] and dir == Direction.LEFT:
             continue
         if attributes[0][1] and dir == Direction.RIGHT:
@@ -86,6 +86,16 @@ def create_training_data(states, directions, block_size, bounds):
             continue
         if attributes[0][3] and dir == Direction.DOWN:
             continue
+
+        # always go for food if possible
+        if attributes[0][4] and not attributes[0][0]:
+            dir = Direction.LEFT
+        if attributes[0][5] and not attributes[0][1]:
+            dir = Direction.RIGHT
+        if attributes[0][6] and not attributes[0][2]:
+            dir = Direction.UP
+        if attributes[0][7] and not attributes[0][3]:
+            dir = Direction.DOWN
         
         new_dirs.append(dir)
         training_data = np.concatenate((training_data, attributes), axis=0)
