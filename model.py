@@ -8,7 +8,8 @@ pickled data files and merge them into a single data list."""
 
 def combine_pickles():
     run=[]
-    for i in range(4):
+    open('data/merged.pickle', 'w').close()
+    for i in range(6):
         with open(f'data/run{i}.pickle', 'rb') as run_file:
             run = pickle.load(run_file)
         with open("data/merged.pickle", "ab") as merged_file:
@@ -18,6 +19,7 @@ def game_state_to_data_sample(game_state: dict, block_size: int, bounds: tuple):
     snake_body = game_state["snake_body"]
     head = snake_body[-1]
     food = game_state["food"]
+    snake_direction = game_state["snake_direction"]
 
     is_wall_left = True if head[0] == 0 else False
     is_wall_right = True if head[0] == (bounds[0]-block_size) else False
@@ -44,7 +46,17 @@ def game_state_to_data_sample(game_state: dict, block_size: int, bounds: tuple):
     is_obstacle_up = True if is_wall_up or is_snake_up else False
     is_obstacle_down = True if is_wall_down or is_snake_down else False
 
-    data_sample = np.array([[is_obstacle_left, is_obstacle_right, is_obstacle_up, is_obstacle_down, is_food_left, is_food_right, is_food_up, is_food_down]])
+    is_food_in_snake_direction = False
+    if head[1] == food[1] and head[0] < food[0] and snake_direction == Direction.LEFT:
+        is_food_in_snake_direction = True
+    if head[1] == food[1] and head[0] > food[0] and snake_direction == Direction.RIGHT:
+        is_food_in_snake_direction = True
+    if head[0] == food[0] and head[1] > food[1] and snake_direction == Direction.UP:
+        is_food_in_snake_direction = True
+    if head[0] == food[0] and head[1] < food[1] and snake_direction == Direction.DOWN:
+        is_food_in_snake_direction = True
+
+    data_sample = np.array([[is_wall_left, is_wall_right, is_wall_up, is_wall_down, is_food_left, is_food_right, is_food_up, is_food_down, is_food_in_snake_direction]])
 
     return data_sample
 
@@ -60,20 +72,20 @@ def get_states_and_directions_from_pickle(filename):
     return game_states, directions
 
 def create_training_data(states, directions, block_size, bounds):
-    training_data = np.array([[0, 1, 2, 3, 4, 5, 6, 7]]) 
+    training_data = np.array([[0, 1, 2, 3, 4, 5, 6, 7, 8]]) 
     new_dirs = []
     for state, dir in zip(states, directions):
         attributes = game_state_to_data_sample(state, block_size, bounds)
 
         # # never collide
-        # if attributes[0][0] and dir == Direction.LEFT:
-        #     continue
-        # if attributes[0][1] and dir == Direction.RIGHT:
-        #     continue
-        # if attributes[0][2] and dir == Direction.UP:
-        #     continue
-        # if attributes[0][3] and dir == Direction.DOWN:
-        #     continue
+        if attributes[0][0] and dir == Direction.LEFT:
+            continue
+        if attributes[0][1] and dir == Direction.RIGHT:
+            continue
+        if attributes[0][2] and dir == Direction.UP:
+            continue
+        if attributes[0][3] and dir == Direction.DOWN:
+            continue
 
         # # always take food
         # if attributes[0][4]:
@@ -134,7 +146,7 @@ def ID3(training_data, directions):
     return {str(divisor): {True: ID3(attr_true, dir_true), False: ID3(attr_false, dir_false)}}
 
 if __name__ == "__main__":
-    # combine_pickles()
+    combine_pickles()
     run=0
     states, directions = get_states_and_directions_from_pickle(f"data/merged.pickle")
     training_data, training_directions = create_training_data(states, directions, 30, (300, 300))
