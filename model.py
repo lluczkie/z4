@@ -9,7 +9,7 @@ pickled data files and merge them into a single data list."""
 def combine_pickles():
     run=[]
     open('data/merged.pickle', 'w').close()
-    for i in range(5, 10):
+    for i in range(10):
         with open(f'data/run{i}.pickle', 'rb') as run_file:
             run = pickle.load(run_file)
         with open("data/merged.pickle", "ab") as merged_file:
@@ -145,12 +145,30 @@ def ID3(training_data, directions):
     [(attr_true, dir_true), (attr_false, dir_false)] = divide_by_attribute(training_data, directions, divisor)
     return {str(divisor): {True: ID3(attr_true, dir_true), False: ID3(attr_false, dir_false)}}
 
+def split_data(data, dirs):
+    attribute_ixs = data[0:1, :]
+    data=data[1:, :]
+    permutation = np.random.permutation(data.shape[0])
+    np.take(data, permutation, axis=0, out=data)
+    np.take(dirs, permutation, out=dirs)
+    split_ix = data.shape[0] // 5
+    test_data = data[:split_ix, :]
+    train_data = data[split_ix:, :]
+    test_dirs = dirs[:split_ix]
+    train_dirs = dirs[split_ix:]
+
+    train_data = np.concatenate((attribute_ixs, train_data), axis=0)
+    test_data = np.concatenate((attribute_ixs, test_data), axis=0)
+
+    return  (train_data, train_dirs), (test_data, test_dirs)
+
 if __name__ == "__main__":
     combine_pickles()
     run=0
     states, directions = get_states_and_directions_from_pickle(f"data/merged.pickle")
-    training_data, training_directions = process_data(states, directions, 30, (300, 300))
-    tree = ID3(training_data, training_directions)
+    processed_data, processed_directions = process_data(states, directions, 30, (300, 300))
+    (train_data, train_dirs), (test_data, test_dirs) = split_data(processed_data, processed_directions)
+    tree = ID3(train_data, train_dirs)
     out_file = open(f"tree.json", "w")
     json.dump(tree, out_file, indent = 2)
     out_file.close()
