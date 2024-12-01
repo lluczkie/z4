@@ -9,7 +9,7 @@ pickled data files and merge them into a single data list."""
 def combine_pickles():
     run=[]
     open('data/merged.pickle', 'w').close()
-    for i in range(4, 9):
+    for i in range(5, 9):
         with open(f'data/run{i}.pickle', 'rb') as run_file:
             run = pickle.load(run_file)
         with open("data/merged.pickle", "ab") as merged_file:
@@ -51,8 +51,8 @@ def game_state_to_data_sample(game_state: dict, block_size: int, bounds: tuple):
     if head[0] == food[0] and head[1] < food[1] and snake_direction == Direction.DOWN:
         is_food_in_snake_direction = True
 
-    is_food_left = True if head[1] == food[1] and head[0] < food[0] else False
-    is_food_right = True if head[1] == food[1] and head[0] > food[0] else False
+    is_food_left = True if head[1] == food[1] and head[0] > food[0] else False
+    is_food_right = True if head[1] == food[1] and head[0] < food[0] else False
     is_food_up = True if head[0] == food[0] and head[1] > food[1] else False
     is_food_down = True if head[0] == food[0] and head[1] < food[1] else False
 
@@ -87,15 +87,15 @@ def create_training_data(states, directions, block_size, bounds):
         if attributes[0][3] and dir == Direction.DOWN:
             continue
 
-        # # always take food
-        # if attributes[0][4]:
-        #     dir = Direction.LEFT
-        # if attributes[0][5]:
-        #     dir = Direction.RIGHT
-        # if attributes[0][6]:
-        #     dir = Direction.UP
-        # if attributes[0][7]:
-        #     dir = Direction.DOWN
+        # always take food
+        if attributes[0][4]:
+            dir = Direction.LEFT
+        if attributes[0][5]:
+            dir = Direction.RIGHT
+        if attributes[0][6]:
+            dir = Direction.UP
+        if attributes[0][7]:
+            dir = Direction.DOWN
         
         new_dirs.append(dir)
         training_data = np.concatenate((training_data, attributes), axis=0)
