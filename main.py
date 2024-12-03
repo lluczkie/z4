@@ -20,10 +20,10 @@ def main():
     food = Food(block_size, bounds, lifetime=100)
     agent = BehavioralCloningAgent(block_size, bounds)  # Once your agent is good to go, change this line
     scores = []
-    run = True
+    run = len(scores) < 100
     pygame.time.delay(1000)
     while run:
-        pygame.time.delay(100)  # Adjust game speed, decrease to test your agent and model quickly
+        pygame.time.delay(10)  # Adjust game speed, decrease to test your agent and model quickly
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
