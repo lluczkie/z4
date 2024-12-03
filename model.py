@@ -3,7 +3,7 @@ import numpy as np
 from snake import Direction
 from math import log
 import json
-from  sklearn.metrics import precision_score
+from  sklearn.metrics import accuracy_score
 """Implement your model, training code and other utilities here. Please note, you can generate multiple 
 pickled data files and merge them into a single data list."""
 
@@ -57,7 +57,7 @@ def game_state_to_data_sample(game_state: dict, block_size: int, bounds: tuple):
     is_food_up = True if head[0] == food[0] and head[1] > food[1] else False
     is_food_down = True if head[0] == food[0] and head[1] < food[1] else False
 
-    data_sample = np.array([[is_obstacle_left, is_obstacle_right, is_obstacle_up, is_obstacle_down, is_food_left, is_food_right, is_food_up, is_food_down, is_food_in_snake_direction]])
+    data_sample = np.array([[is_obstacle_left, is_obstacle_right, is_obstacle_up, is_obstacle_down, is_food_left, is_food_right, is_food_up, is_food_down]])
 
     return data_sample
 
@@ -73,7 +73,7 @@ def get_states_and_directions_from_pickle(filename):
     return game_states, directions
 
 def process_data(states, directions, block_size, bounds):
-    processed_data = np.array([[0, 1, 2, 3, 4, 5, 6, 7, 8]]) 
+    processed_data = np.array([[0, 1, 2, 3, 4, 5, 6, 7]]) 
     new_dirs = []
     for state, dir in zip(states, directions):
         attributes = game_state_to_data_sample(state, block_size, bounds)
@@ -189,5 +189,5 @@ if __name__ == "__main__":
     pred_dirs = []
     for sample in test_data:
         pred_dirs.append(act_from_data_sample(id3, sample))
-    ps = precision_score(test_dirs, pred_dirs, average=None)
-    pass
+    accuracy = accuracy_score(test_dirs, pred_dirs)
+    print(accuracy)
