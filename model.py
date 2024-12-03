@@ -43,16 +43,6 @@ def game_state_to_data_sample(game_state: dict, block_size: int, bounds: tuple):
     is_obstacle_up = True if is_wall_up or is_snake_up else False
     is_obstacle_down = True if is_wall_down or is_snake_down else False
 
-    is_food_in_snake_direction = False
-    if head[1] == food[1] and head[0] < food[0] and snake_direction == Direction.LEFT:
-        is_food_in_snake_direction = True
-    if head[1] == food[1] and head[0] > food[0] and snake_direction == Direction.RIGHT:
-        is_food_in_snake_direction = True
-    if head[0] == food[0] and head[1] > food[1] and snake_direction == Direction.UP:
-        is_food_in_snake_direction = True
-    if head[0] == food[0] and head[1] < food[1] and snake_direction == Direction.DOWN:
-        is_food_in_snake_direction = True
-
     is_food_left = True if head[1] == food[1] and head[0] > food[0] else False
     is_food_right = True if head[1] == food[1] and head[0] < food[0] else False
     is_food_up = True if head[0] == food[0] and head[1] > food[1] else False
@@ -132,12 +122,12 @@ def inf_gain(data_to_divide, directions, attribute_id):
     inf = (dirs1.size*get_entropy(dirs1) + dirs2.size*get_entropy(dirs2))/directions.size
     return get_entropy(directions)-inf
 
-def ID3(training_data, directions):
+def ID3(training_data, directions, d=8):
     if directions.size == 0:
         return str(np.random.randint(0, 4))
     if np.all(directions == directions[0]):
         return str(directions[0])
-    if training_data.size == 0:
+    if training_data.size == 0 or d==0:
         counts = np.bincount(directions)
         return str(np.argmax(counts))
     
@@ -145,7 +135,7 @@ def ID3(training_data, directions):
     gains = [inf_gain(training_data, directions, attr) for attr in attributes]
     divisor = attributes[np.argmax(gains)]
     [(attr_true, dir_true), (attr_false, dir_false)] = divide_by_attribute(training_data, directions, divisor)
-    return {str(divisor): {True: ID3(attr_true, dir_true), False: ID3(attr_false, dir_false)}}
+    return {str(divisor): {True: ID3(attr_true, dir_true, d-1), False: ID3(attr_false, dir_false, d-1)}}
 
 def split_data(data, dirs, percent):
     # mix samples from different runs
@@ -182,7 +172,7 @@ if __name__ == "__main__":
     percents = [100]
     for percent in percents:
         (train_data, train_dirs), (test_data, test_dirs) = split_data(processed_data, processed_directions, percent)
-        tree = ID3(train_data, train_dirs)
+        tree = ID3(train_data, train_dirs, 6)
         out_file = open(f"tree.json", "w")
         json.dump(tree, out_file, indent = 2)
         out_file.close()
@@ -196,7 +186,7 @@ if __name__ == "__main__":
             pred_dirs.append(act_from_data_sample(id3, sample))
         accuracies.append(accuracy_score(test_dirs, pred_dirs))
 
-    plt.plot(percents, accuracies)
-    plt.xlabel('percent of used data')
-    plt.ylabel('accuracy score')
-    plt.show()
+    # plt.plot(percents, accuracies)
+    # plt.xlabel('percent of used data')
+    # plt.ylabel('accuracy score')
+    # plt.show()
