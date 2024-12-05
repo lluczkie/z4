@@ -8,6 +8,7 @@ from food import Food
 from model import game_state_to_data_sample
 from snake import Snake, Direction
 import json
+import numpy as np
 
 def main():
     pygame.init()
@@ -20,10 +21,10 @@ def main():
     food = Food(block_size, bounds, lifetime=100)
     agent = BehavioralCloningAgent(block_size, bounds)  # Once your agent is good to go, change this line
     scores = []
-    run = len(scores) < 100
+    run = True
     pygame.time.delay(1000)
-    while run:
-        pygame.time.delay(10)  # Adjust game speed, decrease to test your agent and model quickly
+    while len(scores) < 100:
+        pygame.time.delay(0)  # Adjust game speed, decrease to test your agent and model quickly
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -52,7 +53,10 @@ def main():
         food.draw(pygame, window)
         pygame.display.update()
 
-    print(f"Scores: {scores}")
+    mean = np.mean(scores)
+    std = np.std(scores)
+
+    print(f"mean: {mean} std: {std}")
     agent.dump_data()
     pygame.quit()
 
