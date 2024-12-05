@@ -4,7 +4,6 @@ from snake import Direction
 from math import log
 import json
 from  sklearn.metrics import accuracy_score
-import matplotlib.pyplot as plt
 """Implement your model, training code and other utilities here. Please note, you can generate multiple 
 pickled data files and merge them into a single data list."""
 
@@ -168,11 +167,13 @@ if __name__ == "__main__":
     states, directions = get_states_and_directions_from_pickle(f"data/merged.pickle")
     processed_data, processed_directions = process_data(states, directions, 30, (300, 300))
     
-    accuracies = []
-    percents = [100]
-    for percent in percents:
-        (train_data, train_dirs), (test_data, test_dirs) = split_data(processed_data, processed_directions, percent)
-        tree = ID3(train_data, train_dirs, 6)
+    test_accuracies = []
+    train_accuracies = []
+    percents = [1, 10, 100]
+    depths = [1, 2, 3, 6, 8]
+    for depth in depths: # alternatively iterate throught percents
+        (train_data, train_dirs), (test_data, test_dirs) = split_data(processed_data, processed_directions, 100) # percent instead of 100
+        tree = ID3(train_data, train_dirs, depth)
         out_file = open(f"tree.json", "w")
         json.dump(tree, out_file, indent = 2)
         out_file.close()
@@ -181,12 +182,17 @@ if __name__ == "__main__":
         id3 = json.load(f)
         f.close()
 
-        pred_dirs = []
+        pred_dirs_test = []
         for sample in test_data:
-            pred_dirs.append(act_from_data_sample(id3, sample))
-        accuracies.append(accuracy_score(test_dirs, pred_dirs))
+            pred_dirs_test.append(act_from_data_sample(id3, sample))
+        test_accuracies.append(accuracy_score(test_dirs, pred_dirs_test))
 
-    # plt.plot(percents, accuracies)
-    # plt.xlabel('percent of used data')
-    # plt.ylabel('accuracy score')
-    # plt.show()
+        pred_dirs_train = []
+        for sample in train_data[1:]:
+            pred_dirs_train.append(act_from_data_sample(id3, sample))
+        train_accuracies.append(accuracy_score(train_dirs, pred_dirs_train))
+
+    print('train')
+    print(train_accuracies)
+    print('test')
+    print(test_accuracies)
