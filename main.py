@@ -23,7 +23,7 @@ def main():
     scores = []
     run = True
     pygame.time.delay(1000)
-    while len(scores) < 100:
+    while len(scores) <= 100:
         pygame.time.delay(0)  # Adjust game speed, decrease to test your agent and model quickly
 
         for event in pygame.event.get():

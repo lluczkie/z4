@@ -4,17 +4,27 @@ from snake import Direction
 from math import log
 import json
 from  sklearn.metrics import accuracy_score
+import os
 """Implement your model, training code and other utilities here. Please note, you can generate multiple 
 pickled data files and merge them into a single data list."""
 
-def combine_pickles():
-    run=[]
-    open('data/merged.pickle', 'w').close()
-    for i in range(11):
-        with open(f'data/run{i}.pickle', 'rb') as run_file:
+def combine_pickles(dir):
+    data = []
+    bounds = 0
+    block_size = 0
+    for file in os.listdir(f'{dir}'):
+        filename = os.fsdecode(file)
+        if not filename.endswith(".pickle"):
+            continue
+        with open(f'data/{filename}', 'rb') as run_file:
             run = pickle.load(run_file)
-        with open("data/merged.pickle", "ab") as merged_file:
-            pickle.dump(run, merged_file)
+            data = data + run['data']
+            block_size = run['block_size']
+            bounds = run['bounds']
+    with open("data/merged.pickle", "wb") as merged_file:
+        pickle.dump({"block_size": block_size,
+                         "bounds": bounds,
+                         "data": data}, merged_file)
 
 def game_state_to_data_sample(game_state: dict, block_size: int, bounds: tuple):
     snake_body = game_state["snake_body"]
@@ -163,17 +173,17 @@ def act_from_data_sample(id3, data_sample):
     return int(next)
 
 if __name__ == "__main__":
-    combine_pickles()
+    combine_pickles("data")
     states, directions = get_states_and_directions_from_pickle(f"data/merged.pickle")
     processed_data, processed_directions = process_data(states, directions, 30, (300, 300))
     
     test_accuracies = []
     train_accuracies = []
-    percents = [1, 10, 100]
+    percents = [100]
     depths = [1, 2, 3, 6, 8]
-    for depth in depths: # alternatively iterate throught percents
-        (train_data, train_dirs), (test_data, test_dirs) = split_data(processed_data, processed_directions, 100) # percent instead of 100
-        tree = ID3(train_data, train_dirs, depth)
+    for percent in percents: # alternatively iterate throught percents
+        (train_data, train_dirs), (test_data, test_dirs) = split_data(processed_data, processed_directions, percent) # percent instead of 100
+        tree = ID3(train_data, train_dirs)
         out_file = open(f"tree.json", "w")
         json.dump(tree, out_file, indent = 2)
         out_file.close()
