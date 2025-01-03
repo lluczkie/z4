@@ -174,35 +174,39 @@ def act_from_data_sample(id3, data_sample):
 
 if __name__ == "__main__":
     combine_pickles("data")
-    states, directions = get_states_and_directions_from_pickle(f"data/merged.pickle")
+    states, directions = get_states_and_directions_from_pickle(f"data/train.pickle")
     processed_data, processed_directions = process_data(states, directions, 30, (300, 300))
     
-    test_accuracies = []
-    train_accuracies = []
-    percents = [100]
-    depths = [1, 2, 3, 6, 8]
-    for percent in percents: # alternatively iterate throught percents
-        (train_data, train_dirs), (test_data, test_dirs) = split_data(processed_data, processed_directions, percent) # percent instead of 100
-        tree = ID3(train_data, train_dirs)
-        out_file = open(f"tree.json", "w")
-        json.dump(tree, out_file, indent = 2)
-        out_file.close()
+    # test_accuracies = []
+    # train_accuracies = []
+    # percents = [100]
+    # depths = [1, 2, 3, 6, 8]
+    # for percent in percents: # alternatively iterate throught percents
+        # (train_data, train_dirs), (test_data, test_dirs) = split_data(processed_data, processed_directions, percent) # percent instead of 100
+    tree = ID3(processed_data, processed_directions)
+    out_file = f"tree_tr_pickle"
+    # json.dump(tree, out_file, indent = 2)
+    with open(out_file, "wb") as tree_file:
+        pickle.dump(tree, tree_file)
+    # out_file.close()
 
-        f = open('tree.json', 'r')
-        id3 = json.load(f)
-        f.close()
+    id3={}
+    with open(out_file, "rb") as tree_file:
+        id3=pickle.load(tree_file)
+    
+    # id3 = json.load(f)
 
-        pred_dirs_test = []
-        for sample in test_data:
-            pred_dirs_test.append(act_from_data_sample(id3, sample))
-        test_accuracies.append(accuracy_score(test_dirs, pred_dirs_test))
+        # pred_dirs_test = []
+        # for sample in test_data:
+        #     pred_dirs_test.append(act_from_data_sample(id3, sample))
+        # test_accuracies.append(accuracy_score(test_dirs, pred_dirs_test))
 
-        pred_dirs_train = []
-        for sample in train_data[1:]:
-            pred_dirs_train.append(act_from_data_sample(id3, sample))
-        train_accuracies.append(accuracy_score(train_dirs, pred_dirs_train))
+        # pred_dirs_train = []
+        # for sample in train_data[1:]:
+        #     pred_dirs_train.append(act_from_data_sample(id3, sample))
+        # train_accuracies.append(accuracy_score(train_dirs, pred_dirs_train))
 
-    print('train')
-    print(train_accuracies)
-    print('test')
-    print(test_accuracies)
+    # print('train')
+    # print(train_accuracies)
+    # print('test')
+    # print(test_accuracies)

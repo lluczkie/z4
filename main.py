@@ -24,7 +24,7 @@ def main():
     run = True
     pygame.time.delay(1000)
     while len(scores) <= 100:
-        pygame.time.delay(0)  # Adjust game speed, decrease to test your agent and model quickly
+        # pygame.time.delay(0)  # Adjust game speed, decrease to test your agent and model quickly
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -97,18 +97,18 @@ class BehavioralCloningAgent:
     def __init__(self, block_size, bounds):
         self.block_size = block_size
         self.bounds = bounds
-        f = open('tree.json', 'r')
-        self.id3 = json.load(f)
-        f.close()
+        with open("tree_tr_pickle", "rb") as tree_file:
+            self.id3=pickle.load(tree_file)
+    
 
     def act(self, game_state) -> Direction:
         """ Calculate data sample attributes from game_state and run the trained model to predict snake's action/direction"""
         data_sample = game_state_to_data_sample(game_state, self.block_size, self.bounds)
         level = list(self.id3.keys())[0]
-        next=self.id3[level][str(data_sample[0, int(level)]).lower()]
+        next=self.id3[level][data_sample[0, int(level)]]
         while type(next) == dict:
             level = list(next.keys())[0]
-            next=next[level][str(data_sample[0, int(level)]).lower()]
+            next=next[level][data_sample[0, int(level)]]
         return int(next)
 
     def dump_data(self):
